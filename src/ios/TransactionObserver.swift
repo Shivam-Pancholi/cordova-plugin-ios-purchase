@@ -87,6 +87,58 @@ class TransactionObserver {
 
 // MARK: - Legacy StoreKit 1 Support (iOS 14 and below)
 
+/// Transaction observer for backward compatibility with iOS 14 and below
+class TransactionObserverCompat: NSObject, SKPaymentTransactionObserver {
+
+    // MARK: - Properties
+    var transactionUpdateCallback: (([SKPaymentTransaction]) -> Void)?
+
+    // MARK: - Initialization
+    override init() {
+        super.init()
+        SKPaymentQueue.default().add(self)
+    }
+
+    deinit {
+        SKPaymentQueue.default().remove(self)
+    }
+
+    // MARK: - SKPaymentTransactionObserver
+
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+        // Notify callback with all transactions
+        transactionUpdateCallback?(transactions)
+
+        for transaction in transactions {
+            switch transaction.transactionState {
+            case .purchased, .restored, .failed:
+                // Finish the transaction
+                queue.finishTransaction(transaction)
+
+            case .purchasing, .deferred:
+                // Transaction is in progress
+                break
+
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    func paymentQueue(_ queue: SKPaymentQueue, removedTransactions transactions: [SKPaymentTransaction]) {
+        // Handle removed transactions if needed
+    }
+
+    func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
+        // Restore completed successfully
+    }
+
+    func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
+        // Restore failed
+        print("Restore failed: \(error.localizedDescription)")
+    }
+}
+
 /// Observer for StoreKit 1 transactions (iOS 14 and below)
 @available(iOS 14.0, *)
 class LegacyTransactionObserver: NSObject, SKPaymentTransactionObserver {

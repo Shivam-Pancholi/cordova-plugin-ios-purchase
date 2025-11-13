@@ -11,7 +11,7 @@ import StoreKit
 @objc(iOSPurchasePlugin)
 class iOSPurchasePlugin: CDVPlugin {
 
-    private var storeManager: StoreManager?
+    private var storeManager: Any?
     private var transactionObserver: TransactionObserverCompat?
 
     // MARK: - Plugin Lifecycle
@@ -23,8 +23,10 @@ class iOSPurchasePlugin: CDVPlugin {
             storeManager = StoreManager.shared
 
             // Set up transaction update callback
-            storeManager?.transactionUpdateCallback = { [weak self] transaction in
-                self?.sendTransactionUpdate(transaction: transaction)
+            if let manager = storeManager as? StoreManager {
+                manager.transactionUpdateCallback = { [weak self] transaction in
+                    self?.sendTransactionUpdate(transaction: transaction)
+                }
             }
         } else {
             // Fallback to StoreKit 1 for iOS 14 and below
@@ -59,9 +61,15 @@ class iOSPurchasePlugin: CDVPlugin {
         }
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
-                    let products = try await storeManager?.loadProducts(productIDs: productIDs) ?? []
+                    let products = try await manager.loadProducts(productIDs: productIDs)
                     let productsDict = products.map { $0.toDictionary() }
 
                     let result = CDVPluginResult(status: .ok, messageAs: productsDict)
@@ -92,14 +100,20 @@ class iOSPurchasePlugin: CDVPlugin {
         let offerID = command.argument(at: 1) as? String
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
                     let transaction: TransactionInfo
 
                     if let offer = offerID {
-                        transaction = try await storeManager?.purchase(productID: productID, offerID: offer) ?? TransactionInfo(from: Transaction.currentEntitlements.first(where: { _ in true })!)
+                        transaction = try await manager.purchase(productID: productID, offerID: offer)
                     } else {
-                        transaction = try await storeManager?.purchase(productID: productID) ?? TransactionInfo(from: Transaction.currentEntitlements.first(where: { _ in true })!)
+                        transaction = try await manager.purchase(productID: productID)
                     }
 
                     let result = CDVPluginResult(status: .ok, messageAs: transaction.toDictionary())
@@ -123,9 +137,15 @@ class iOSPurchasePlugin: CDVPlugin {
     @objc(restorePurchases:)
     func restorePurchases(command: CDVInvokedUrlCommand) {
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
-                    let transactions = try await storeManager?.restorePurchases() ?? []
+                    let transactions = try await manager.restorePurchases()
                     let transactionsDict = transactions.map { $0.toDictionary() }
 
                     let result = CDVPluginResult(status: .ok, messageAs: transactionsDict)
@@ -145,8 +165,14 @@ class iOSPurchasePlugin: CDVPlugin {
     @objc(getCurrentEntitlements:)
     func getCurrentEntitlements(command: CDVInvokedUrlCommand) {
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
-                let transactions = await storeManager?.getCurrentEntitlements() ?? []
+                let transactions = await manager.getCurrentEntitlements()
                 let transactionsDict = transactions.map { $0.toDictionary() }
 
                 let result = CDVPluginResult(status: .ok, messageAs: transactionsDict)
@@ -168,8 +194,14 @@ class iOSPurchasePlugin: CDVPlugin {
         }
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
-                let purchased = await storeManager?.isPurchased(productID: productID) ?? false
+                let purchased = await manager.isPurchased(productID: productID)
 
                 let result = CDVPluginResult(status: .ok, messageAs: purchased)
                 self.commandDelegate.send(result, callbackId: command.callbackId)
@@ -192,9 +224,15 @@ class iOSPurchasePlugin: CDVPlugin {
         }
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
-                    if let status = try await storeManager?.getSubscriptionStatus(productID: productID) {
+                    if let status = try await manager.getSubscriptionStatus(productID: productID) {
                         let result = CDVPluginResult(status: .ok, messageAs: status.toDictionary())
                         self.commandDelegate.send(result, callbackId: command.callbackId)
                     } else {
@@ -222,9 +260,15 @@ class iOSPurchasePlugin: CDVPlugin {
         }
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
-                    let statuses = try await storeManager?.getSubscriptionStatuses(groupID: groupID) ?? []
+                    let statuses = try await manager.getSubscriptionStatuses(groupID: groupID)
                     let statusesDict = statuses.map { $0.toDictionary() }
 
                     let result = CDVPluginResult(status: .ok, messageAs: statusesDict)
@@ -299,9 +343,15 @@ class iOSPurchasePlugin: CDVPlugin {
         }
 
         if #available(iOS 15.0, *) {
+            guard let manager = storeManager as? StoreManager else {
+                let result = CDVPluginResult(status: .error, messageAs: "StoreManager not initialized")
+                commandDelegate.send(result, callbackId: command.callbackId)
+                return
+            }
+
             Task {
                 do {
-                    let status = try await storeManager?.beginRefundRequest(transactionID: transactionID) ?? "unknown"
+                    let status = try await manager.beginRefundRequest(transactionID: transactionID)
 
                     let result = CDVPluginResult(status: .ok, messageAs: status)
                     self.commandDelegate.send(result, callbackId: command.callbackId)
@@ -328,6 +378,7 @@ class iOSPurchasePlugin: CDVPlugin {
     }
 
     /// Send transaction update to JavaScript
+    @available(iOS 15.0, *)
     private func sendTransactionUpdate(transaction: TransactionInfo) {
         sendEvent(name: "transactionUpdate", data: transaction.toDictionary())
     }

@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import UIKit
 
 @available(iOS 15.0, *)
 class StoreManager: ObservableObject {
@@ -235,6 +236,73 @@ class StoreManager: ObservableObject {
         }
 
         return statuses
+    }
+
+    /// Get all subscription statuses for a group (alias for compatibility)
+    /// - Parameter groupID: The subscription group identifier
+    /// - Returns: Array of SubscriptionStatusInfo objects
+    func getSubscriptionStatuses(groupID: String) async throws -> [SubscriptionStatusInfo] {
+        return try await getSubscriptionGroupStatus(groupID: groupID)
+    }
+
+    // MARK: - Current Entitlements
+
+    /// Get all current entitlements
+    /// - Returns: Array of TransactionInfo objects for current entitlements
+    func getCurrentEntitlements() async -> [TransactionInfo] {
+        var entitlements: [TransactionInfo] = []
+
+        // Iterate through all current entitlements
+        for await result in Transaction.currentEntitlements {
+            do {
+                let transaction = try checkVerified(result)
+                entitlements.append(TransactionInfo(from: transaction))
+            } catch {
+                // Log verification failure but continue
+                print("Failed to verify entitlement: \(error)")
+            }
+        }
+
+        return entitlements
+    }
+
+    // MARK: - Refund Management
+
+    /// Begin refund request for a transaction
+    /// - Parameter transactionID: The transaction identifier
+    /// - Returns: Refund status string
+    func beginRefundRequest(transactionID: UInt64) async throws -> String {
+        // Find the transaction
+        for await result in Transaction.all {
+            do {
+                let transaction = try checkVerified(result)
+
+                if transaction.id == transactionID {
+                    // Begin refund request (iOS 15+)
+                    if #available(iOS 15.0, *) {
+                        let status = try await transaction.beginRefundRequest(in: UIApplication.shared.windows.first?.windowScene ?? UIWindowScene())
+
+                        // Return status as string
+                        switch status {
+                        case .success:
+                            return "success"
+                        case .userCancelled:
+                            return "userCancelled"
+                        @unknown default:
+                            return "unknown"
+                        }
+                    }
+                }
+            } catch {
+                continue
+            }
+        }
+
+        throw NSError(
+            domain: "StoreManager",
+            code: PurchaseError.invalidProductID.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Transaction not found: \(transactionID)"]
+        )
     }
 
     // MARK: - Transaction Verification
