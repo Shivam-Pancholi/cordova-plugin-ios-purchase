@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-ios-purchase"
+        version="1.0.0">
+
+    <name>iOS In-App Purchase</name>
+    <description>Production-grade Cordova plugin for iOS In-App Purchases and Subscriptions using StoreKit 2</description>
+    <license>MIT</license>
+    <keywords>cordova,ios,in-app-purchase,iap,subscription,storekit,storekit2</keywords>
+    <repo>https://github.com/Shivam-Pancholi/cordova-plugin-ios-purchase.git</repo>
+    <issue>https://github.com/Shivam-Pancholi/cordova-plugin-ios-purchase/issues</issue>
+    <author>Shivam Pancholi</author>
+
+    <engines>
+        <engine name="cordova" version=">=9.0.0"/>
+        <engine name="cordova-ios" version=">=6.0.0"/>
+    </engines>
+
+    <!-- JavaScript Interface -->
+    <js-module src="www/iOSPurchase.js" name="iOSPurchase">
+        <clobbers target="iOSPurchase" />
+    </js-module>
+
+    <!-- iOS Platform -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="iOSPurchase">
+                <param name="ios-package" value="iOSPurchasePlugin"/>
+                <param name="onload" value="true"/>
+            </feature>
+        </config-file>
+
+        <!-- Swift Support -->
+        <dependency id="cordova-plugin-add-swift-support" version="^2.0.2"/>
+
+        <!-- Source Files -->
+        <source-file src="src/ios/iOSPurchasePlugin.swift"/>
+        <source-file src="src/ios/StoreManager.swift"/>
+        <source-file src="src/ios/TransactionObserver.swift"/>
+        <source-file src="src/ios/ReceiptValidator.swift"/>
+        <source-file src="src/ios/Models.swift"/>
+
+        <!-- Framework Dependencies -->
+        <framework src="StoreKit.framework" weak="false"/>
+        <framework src="Foundation.framework" weak="false"/>
+
+        <!-- Podfile for StoreKit 2 (iOS 15+) -->
+        <podspec>
+            <config>
+                <source url="https://cdn.cocoapods.org/"/>
+            </config>
+        </podspec>
+
+        <!-- Info.plist modifications for privacy -->
+        <config-file target="*-Info.plist" parent="NSUserTrackingUsageDescription">
+            <string>This app uses data for personalized subscription offers</string>
+        </config-file>
+    </platform>
+</plugin>

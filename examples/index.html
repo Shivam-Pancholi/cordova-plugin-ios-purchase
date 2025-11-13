@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>iOS Purchase Plugin Example</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>iOS In-App Purchase Demo</h1>
+            <p class="subtitle">Example implementation of cordova-plugin-ios-purchase</p>
+        </header>
+
+        <!-- Status Section -->
+        <section class="card">
+            <h2>Status</h2>
+            <div id="status" class="status">
+                <p>Waiting for device ready...</p>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="card">
+            <h2>Products</h2>
+            <button onclick="loadProducts()" class="btn btn-primary">Load Products</button>
+            <div id="products" class="products-grid"></div>
+        </section>
+
+        <!-- Consumables Section -->
+        <section class="card">
+            <h2>Consumables (Coins)</h2>
+            <div class="products-grid">
+                <div class="product-card" data-product-id="com.yourapp.coins100">
+                    <h3>100 Coins</h3>
+                    <p class="price" id="price-coins100">Loading...</p>
+                    <button onclick="buyProduct('com.yourapp.coins100')" class="btn btn-success">Buy</button>
+                </div>
+                <div class="product-card" data-product-id="com.yourapp.coins500">
+                    <h3>500 Coins</h3>
+                    <p class="price" id="price-coins500">Loading...</p>
+                    <button onclick="buyProduct('com.yourapp.coins500')" class="btn btn-success">Buy</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Non-Consumables Section -->
+        <section class="card">
+            <h2>Non-Consumables</h2>
+            <div class="product-card">
+                <h3>Premium Features</h3>
+                <p class="price" id="price-premium">Loading...</p>
+                <div id="premium-status" class="badge badge-info">Not purchased</div>
+                <button onclick="buyProduct('com.yourapp.premium')" class="btn btn-success" id="btn-premium">Buy Premium</button>
+            </div>
+        </section>
+
+        <!-- Subscriptions Section -->
+        <section class="card">
+            <h2>Subscriptions</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <h3>Monthly Subscription</h3>
+                    <p class="price" id="price-monthly">Loading...</p>
+                    <div id="monthly-status" class="subscription-status"></div>
+                    <button onclick="buyProduct('com.yourapp.monthly')" class="btn btn-success">Subscribe</button>
+                </div>
+                <div class="product-card">
+                    <h3>Yearly Subscription</h3>
+                    <p class="price" id="price-yearly">Loading...</p>
+                    <div id="yearly-status" class="subscription-status"></div>
+                    <button onclick="buyProduct('com.yourapp.yearly')" class="btn btn-success">Subscribe</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actions Section -->
+        <section class="card">
+            <h2>Actions</h2>
+            <div class="actions-grid">
+                <button onclick="restorePurchases()" class="btn btn-secondary">Restore Purchases</button>
+                <button onclick="checkSubscriptions()" class="btn btn-secondary">Check Subscriptions</button>
+                <button onclick="getPurchased()" class="btn btn-secondary">Get Purchased</button>
+                <button onclick="getReceipt()" class="btn btn-secondary">Get Receipt</button>
+            </div>
+        </section>
+
+        <!-- Transaction Log -->
+        <section class="card">
+            <h2>Transaction Log</h2>
+            <button onclick="clearLog()" class="btn btn-secondary btn-sm">Clear</button>
+            <div id="log" class="log"></div>
+        </section>
+    </div>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+</body>
+</html>

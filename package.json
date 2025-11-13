@@ -1,0 +1,52 @@
+{
+  "name": "cordova-plugin-ios-purchase",
+  "version": "1.0.0",
+  "description": "Production-grade Cordova plugin for iOS In-App Purchases and Subscriptions using StoreKit 2",
+  "cordova": {
+    "id": "cordova-plugin-ios-purchase",
+    "platforms": [
+      "ios"
+    ]
+  },
+  "keywords": [
+    "cordova",
+    "cordova-ios",
+    "ecosystem:cordova",
+    "cordova-plugin",
+    "ios",
+    "in-app-purchase",
+    "iap",
+    "subscription",
+    "storekit",
+    "storekit2",
+    "app-store"
+  ],
+  "engines": {
+    "cordovaDependencies": {
+      ">=9.0.0": {
+        "cordova-ios": ">=6.0.0"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shivam-Pancholi/cordova-plugin-ios-purchase.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shivam-Pancholi/cordova-plugin-ios-purchase/issues"
+  },
+  "author": "Shivam Pancholi <shivampancholi51@gmail.com>",
+  "license": "MIT",
+  "main": "www/iOSPurchase.js",
+  "types": "www/iOSPurchase.d.ts",
+  "files": [
+    "src/",
+    "www/",
+    "plugin.xml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  }
+}
