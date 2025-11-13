@@ -87,7 +87,7 @@ class StoreManager: ObservableObject {
     /// Purchase a product
     /// - Parameters:
     ///   - productID: The product identifier to purchase
-    ///   - offerID: Optional promotional offer identifier
+    ///   - offerID: Optional promotional offer identifier (requires server-side signature)
     /// - Returns: TransactionInfo object
     func purchase(productID: String, offerID: String? = nil) async throws -> TransactionInfo {
         // Find the product
@@ -99,19 +99,21 @@ class StoreManager: ObservableObject {
             )
         }
 
-        // Prepare purchase options
-        var options: Set<Product.PurchaseOption> = []
+        // NOTE: Promotional offers require server-signed tokens in StoreKit 2
+        // For now, we'll purchase without promotional offers
+        // To implement promotional offers, you need to:
+        // 1. Generate signature on your server using App Store Connect API
+        // 2. Pass the signed offer data to the app
+        // 3. Use Product.PurchaseOption.promotionalOffer with the signature
 
-        // Add promotional offer if provided
-        if let offerID = offerID,
-           let subscription = product.subscription,
-           let offer = subscription.promotionalOffers.first(where: { $0.id == offerID }) {
-            options.insert(.promotionalOffer(offer))
+        if offerID != nil {
+            // Log that promotional offers are not yet fully implemented
+            print("Warning: Promotional offers require server-side implementation")
         }
 
         do {
-            // Initiate purchase
-            let result = try await product.purchase(options: options)
+            // Initiate purchase (without promotional offer for now)
+            let result = try await product.purchase()
 
             // Handle purchase result
             switch result {
@@ -272,25 +274,32 @@ class StoreManager: ObservableObject {
     /// - Parameter transactionID: The transaction identifier
     /// - Returns: Refund status string
     func beginRefundRequest(transactionID: UInt64) async throws -> String {
+        // Get the current window scene (iOS 15+)
+        guard let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            throw NSError(
+                domain: "StoreManager",
+                code: PurchaseError.unknown.rawValue,
+                userInfo: [NSLocalizedDescriptionKey: "No active window scene found"]
+            )
+        }
+
         // Find the transaction
         for await result in Transaction.all {
             do {
                 let transaction = try checkVerified(result)
 
                 if transaction.id == transactionID {
-                    // Begin refund request (iOS 15+)
-                    if #available(iOS 15.0, *) {
-                        let status = try await transaction.beginRefundRequest(in: UIApplication.shared.windows.first?.windowScene ?? UIWindowScene())
+                    // Begin refund request (iOS 15.0+)
+                    let status = try await transaction.beginRefundRequest(in: windowScene)
 
-                        // Return status as string
-                        switch status {
-                        case .success:
-                            return "success"
-                        case .userCancelled:
-                            return "userCancelled"
-                        @unknown default:
-                            return "unknown"
-                        }
+                    // Return status as string
+                    switch status {
+                    case .success:
+                        return "success"
+                    case .userCancelled:
+                        return "userCancelled"
+                    @unknown default:
+                        return "unknown"
                     }
                 }
             } catch {

@@ -183,15 +183,21 @@ struct TransactionInfo: Codable {
             self.offerType = nil
         }
 
-        switch transaction.environment {
-        case .production:
-            self.environment = "production"
-        case .sandbox:
+        // Environment property is only available in iOS 16.0+
+        if #available(iOS 16.0, *) {
+            switch transaction.environment {
+            case .production:
+                self.environment = "production"
+            case .sandbox:
+                self.environment = "sandbox"
+            case .xcode:
+                self.environment = "xcode"
+            @unknown default:
+                self.environment = "unknown"
+            }
+        } else {
+            // For iOS 15, default to sandbox (can be detected from receipt)
             self.environment = "sandbox"
-        case .xcode:
-            self.environment = "xcode"
-        @unknown default:
-            self.environment = "unknown"
         }
 
         switch transaction.ownershipType {
